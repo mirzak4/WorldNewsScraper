@@ -1,23 +1,24 @@
-﻿using Domain;
+﻿using Application.DailyArticlesProcessor;
+using Application.GlobalArticlesProcessor;
+using Application.SingleArticleScraper;
 using HtmlAgilityPack;
-using Microsoft.Identity.Client;
 
 namespace Application.Services
 {
-    public class GlobalArticlesProcessor
+    public class TheGuardianGlobalArticlesProcessor : IGlobalArticlesProcessor
     {
-        private readonly DailyArticlesProcessor _articlesProcessor;
-        private readonly SingleArticleScraper _singleArticleScraper;
+        private readonly IDailyArticlesProcessor _articlesProcessor;
+        private readonly ISingleArticleScraper _singleArticleScraper;
         private readonly IUnitOfWork _unitOfWork;
 
-        public GlobalArticlesProcessor(DailyArticlesProcessor articlesProcessor, IUnitOfWork unitOfWork, SingleArticleScraper singleArticleScraper)
+        public TheGuardianGlobalArticlesProcessor(IUnitOfWork unitOfWork, DailyArticlesProcessorFactory dailyArticlesProcessorFactory, SingleArticleScrapperFactory singleArticleScrapperFactory)
         {
-            _articlesProcessor = articlesProcessor;
+            _articlesProcessor = dailyArticlesProcessorFactory.Get(Domain.WebsiteType.TheGuardian);
             _unitOfWork = unitOfWork;
-            _singleArticleScraper = singleArticleScraper;
+            _singleArticleScraper = singleArticleScrapperFactory.Get(Domain.WebsiteType.TheGuardian);
         }
 
-        public async Task StartProcessing(DateOnly startDate, DateOnly endDate)
+        public async Task StartProcessingAsync(DateOnly startDate, DateOnly endDate)
         {
             if (startDate > endDate)
             {
@@ -61,7 +62,7 @@ namespace Application.Services
                     .Take(30)
                     .Select(async url =>
                     {
-                        return await _singleArticleScraper.GetArticle(url, DateOnly.MinValue);
+                        return await _singleArticleScraper.GetArticleAsync(url, DateOnly.MinValue);
                     });
 
                 var articles = await Task.WhenAll(tasks);

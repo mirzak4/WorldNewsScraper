@@ -3,20 +3,20 @@ using Domain;
 using HtmlAgilityPack;
 using Serilog;
 
-namespace Application.Services
+namespace Application.SingleArticleScraper
 {
-    public class SingleArticleScraper
+    public class TheGuardianSingleArticleScraper : ISingleArticleScraper
     {
-        private readonly ITheGuardianClient _guardianClient;
+        private readonly IWebClient _guardianClient;
         private readonly ILogger _logger;
 
-        public SingleArticleScraper(ITheGuardianClient guardianClient, ILogger logger)
+        public TheGuardianSingleArticleScraper(IWebClient guardianClient, ILogger logger)
         {
             _guardianClient = guardianClient;
             _logger = logger;
         }
 
-        public async Task<Article?> GetArticle(string url, DateOnly date)
+        public async Task<Article?> GetArticleAsync(string url, DateOnly date)
         {
             try
             {
@@ -34,7 +34,8 @@ namespace Application.Services
                 {
                     Title = title,
                     Date = date,
-                    Content = $"{standFirstText}. {mainContent}"
+                    Content = $"{standFirstText}. {mainContent}",
+                    Orientation = 0
                 };
             }
             catch (Exception ex)

@@ -2,7 +2,6 @@
 using Domain;
 using Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
-using System.Text.RegularExpressions;
 
 namespace Infrastructure.UnitOfWork
 {
@@ -38,7 +37,7 @@ namespace Infrastructure.UnitOfWork
         {
             return await _dbContext
                     .Log
-                    .Where(x => x.Level == "Error" && x.Message.Contains("scraping failed"))
+                    .Where(x => x.Level == "Error" && x.Message.Contains("2021") && x.Message.Contains("failed."))
                     .Select(x => x.Message.Substring(30, x.Message.Length - 31))
                     .ToListAsync();
         }

@@ -1,6 +1,6 @@
 ﻿namespace Application.TheGuardianClient
 {
-    public interface ITheGuardianClient
+    public interface IWebClient
     {
         Task<string> GetStringAsync(string url);
     }

@@ -1,3 +1,4 @@
+using Application.GlobalArticlesProcessor;
 using Application.Services;
 using Microsoft.AspNetCore.Mvc;
 using Serilog;
@@ -21,6 +22,7 @@ namespace TheGuardianScraper
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
+            builder.Services.AddHttpContextAccessor();
             builder.Services.AddRequired(builder.Configuration);
 
             var app = builder.Build();
@@ -41,11 +43,20 @@ namespace TheGuardianScraper
                 "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
             };
 
-            app.MapGet("/scraping/start", async ([FromQuery]DateOnly startDate, [FromQuery]DateOnly endDate, HttpContext httpContext, GlobalArticlesProcessor processor) =>
+            app.MapGet("/theguardian/scraping/start", async ([FromQuery]DateOnly startDate, [FromQuery]DateOnly endDate, HttpContext httpContext, GlobalArticlesProcessorFactory processorFactory) =>
             {
-                await processor.StartProcessing(startDate, endDate);
+                var processor = processorFactory.Get(Domain.WebsiteType.TheGuardian);
+                await processor.StartProcessingAsync(startDate, endDate);
             })
-            .WithName("StartScraping")
+            .WithName("TheGuardianScraping")
+            .WithOpenApi();
+
+            app.MapGet("/breitbart/scraping/start", async ([FromQuery] DateOnly startDate, [FromQuery] DateOnly endDate, HttpContext httpContext, GlobalArticlesProcessorFactory processorFactory) =>
+            {
+                var processor = processorFactory.Get(Domain.WebsiteType.Breitbart);
+                await processor.StartProcessingAsync(startDate, endDate);
+            })
+            .WithName("BreitbartScraping")
             .WithOpenApi();
 
             //app.MapGet("/scraping/day/retry", async ([FromQuery]string date, HttpContext httpContext, GlobalArticlesProcessor processor) =>

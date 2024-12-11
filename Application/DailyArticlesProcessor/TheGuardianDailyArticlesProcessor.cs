@@ -1,20 +1,20 @@
-﻿using Application.TheGuardianClient;
+﻿using Application.SingleArticleScraper;
+using Application.TheGuardianClient;
 using HtmlAgilityPack;
 using Serilog;
-using System;
 
-namespace Application.Services
+namespace Application.DailyArticlesProcessor
 {
-    public class DailyArticlesProcessor
+    public class TheGuardianDailyArticlesProcessor : IDailyArticlesProcessor
     {
-        private readonly ITheGuardianClient _guardianClient;
-        private readonly SingleArticleScraper _singleArticleScraper;
+        private readonly IWebClient _guardianClient;
+        private readonly ISingleArticleScraper _singleArticleScraper;
         private readonly ILogger _logger;
 
-        public DailyArticlesProcessor(ITheGuardianClient guardianClient, SingleArticleScraper singleArticleScraper, ILogger logger)
+        public TheGuardianDailyArticlesProcessor(IWebClient guardianClient, ILogger logger, SingleArticleScrapperFactory singleArticleScrapperFactory)
         {
             _guardianClient = guardianClient;
-            _singleArticleScraper = singleArticleScraper;
+            _singleArticleScraper = singleArticleScrapperFactory.Get(Domain.WebsiteType.TheGuardian);
             _logger = logger;
         }
 
@@ -35,13 +35,13 @@ namespace Application.Services
 
                 foreach (var articleUrl in articleUrls)
                 {
-                    var article = await _singleArticleScraper.GetArticle(articleUrl, date);
+                    var article = await _singleArticleScraper.GetArticleAsync(articleUrl, date);
                     if (article is null)
                     {
                         // Scraping failure can sometimes happen because of too many requests we send
                         // In that case wait for 1min and repeat process
                         await Task.Delay(60000);
-                        article = await _singleArticleScraper.GetArticle(articleUrl, date);
+                        article = await _singleArticleScraper.GetArticleAsync(articleUrl, date);
                     }
                     if (article is not null)
                     {
@@ -73,7 +73,7 @@ namespace Application.Services
                 return htmlDoc
                         .DocumentNode
                         .SelectNodes("//div[contains(@class, 'fc-item__container')]//a/@href\r\n")
-                        .Select(x => x.GetAttributeValue("href", String.Empty))
+                        .Select(x => x.GetAttributeValue("href", string.Empty))
                         .Distinct();
             }
             catch (Exception ex)

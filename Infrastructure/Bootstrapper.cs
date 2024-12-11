@@ -1,13 +1,12 @@
 ﻿using Application;
-using Application.Services;
+using Application.DailyArticlesProcessor;
+using Application.GlobalArticlesProcessor;
+using Application.SingleArticleScraper;
 using Application.TheGuardianClient;
-using Infrastructure.Configuration;
 using Infrastructure.Persistence;
 using Infrastructure.TheGuardianClient;
 using Infrastructure.UnitOfWork;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
 
 namespace TheGuardianScraper
 {
@@ -21,10 +20,10 @@ namespace TheGuardianScraper
                 var dbContext = provider.GetRequiredService<ApplicationDbContext>();
                 return new UnitOfWork(dbContext);
             });
-            services.AddScoped<ITheGuardianClient, TheGuardianClient>();
-            services.AddScoped<SingleArticleScraper>();
-            services.AddScoped<DailyArticlesProcessor>();
-            services.AddScoped<GlobalArticlesProcessor>();
+            services.AddScoped<IWebClient, WebClient>();
+            services.AddScoped<SingleArticleScrapperFactory>();
+            services.AddScoped<DailyArticlesProcessorFactory>();
+            services.AddScoped<GlobalArticlesProcessorFactory>();
         }
     }
 }
